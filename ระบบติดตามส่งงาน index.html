@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบติดตามการส่งงาน หน่วยผู้ป่วยนอก 2 งานการพยาบาลผู้ป่วยนอก</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons CDN -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Google Font: Prompt -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
+    body {
+      font-family: 'Prompt', sans-serif;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col selection:bg-sky-500 selection:text-white">
+
+  <!-- ==================== HEADER / NAVIGATION BAR ==================== -->
+  <header class="bg-gradient-to-r from-sky-900 via-blue-900 to-indigo-900 text-white shadow-lg sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 gap-4">
+        
+        <!-- Logo & Brand Title -->
+        <div class="flex items-center gap-3">
+          <div class="p-2.5 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 shadow-inner">
+            <i class="fa-solid fa-hospital-user text-2xl text-sky-300"></i>
+          </div>
+          <div>
+            <h1 class="text-base sm:text-lg font-bold tracking-tight leading-none text-white">ระบบติดตามการส่งงาน</h1>
+            <p class="text-[11px] text-sky-200 font-light mt-0.5">หน่วยผู้ป่วยนอก 2 งานการพยาบาลผู้ป่วยนอก</p>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs (Desktop) -->
+        <nav class="hidden md:flex items-center space-x-1">
+          <button onclick="switchTab('all-tasks')" id="tab-btn-all-tasks" class="tab-btn px-4 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2 bg-white/15 text-white shadow-sm border border-white/10">
+            <i class="fa-solid fa-list-check text-sky-300"></i>
+            <span>งานกำหนดส่งทั้งหมด</span>
+          </button>
+          <button onclick="switchTab('tracker')" id="tab-btn-tracker" class="tab-btn px-4 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2 text-sky-100 hover:bg-white/10 hover:text-white">
+            <i class="fa-solid fa-chart-line text-sky-300"></i>
+            <span>ติดตามการส่งงาน & Dashboard</span>
+          </button>
+          <button onclick="switchTab('departments')" id="tab-btn-departments" class="tab-btn px-4 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2 text-sky-100 hover:bg-white/10 hover:text-white">
+            <i class="fa-solid fa-building-user text-sky-300"></i>
+            <span>จัดการหน่วยงาน</span>
+          </button>
+        </nav>
+
+        <!-- Action Header Buttons -->
+        <div class="flex items-center gap-2">
+          <button onclick="openNewTaskModal()" class="bg-sky-500 hover:bg-sky-400 text-white px-3.5 py-2 rounded-lg text-xs font-medium transition shadow-md hover:shadow-sky-500/25 flex items-center gap-1.5 active:scale-95">
+            <i class="fa-solid fa-plus text-xs"></i>
+            <span class="hidden sm:inline">สร้างภารกิจใหม่</span>
+          </button>
+          <button onclick="resetDataPrompt()" class="bg-white/10 hover:bg-rose-500/80 text-sky-200 hover:text-white p-2 rounded-lg text-xs transition border border-white/10" title="รีเซ็ตข้อมูลเป็นค่าเริ่มต้น">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Mobile Navigation Bar -->
+      <div class="md:hidden flex border-t border-white/10 py-2 space-x-1 justify-around text-xs">
+        <button onclick="switchTab('all-tasks')" id="mobile-tab-btn-all-tasks" class="mobile-tab-btn flex-1 py-1.5 text-center text-white font-medium bg-white/10 rounded-md">
+          งานกำหนดส่ง
+        </button>
+        <button onclick="switchTab('tracker')" id="mobile-tab-btn-tracker" class="mobile-tab-btn flex-1 py-1.5 text-center text-sky-200">
+          ติดตาม & Dashboard
+        </button>
+        <button onclick="switchTab('departments')" id="mobile-tab-btn-departments" class="mobile-tab-btn flex-1 py-1.5 text-center text-sky-200">
+          หน่วยงาน
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+
+    <!-- ================================================================= -->
+    <!-- TAB 1: ALL TASKS OVERVIEW (งานกำหนดส่งทั้งหมด)                    -->
+    <!-- ================================================================= -->
+    <section id="tab-all-tasks" class="tab-content space-y-6">
+      
+      <!-- Section Banner & Action -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-tasks text-sky-600"></i> รายการภารกิจและงานกำหนดส่งทั้งหมด
+          </h2>
+          <p class="text-xs text-slate-500 mt-1">ภาพรวมการมอบหมายภารกิจ วันกำหนดส่ง และเปอร์เซ็นต์ความคืบหน้าของแต่ละงานในหน่วยผู้ป่วยนอก 2</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+          <div class="relative flex-grow sm:flex-grow-0">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input type="text" id="task-search-input" oninput="renderAllTasksTab()" placeholder="ค้นหาภารกิจ..." class="w-full sm:w-48 pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 font-normal">
+          </div>
+          <select id="task-filter-status" onchange="renderAllTasksTab()" class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium text-slate-700">
+            <option value="ALL">สถานะทั้งหมด</option>
+            <option value="ACTIVE">🟢 กำลังดำเนินการ</option>
+            <option value="SOON">🟠 ใกล้ถึงกำหนด (&le; 7 วัน)</option>
+            <option value="OVERDUE">🔴 เลยกำหนดส่ง</option>
+            <option value="COMPLETED">🔵 เสร็จสมบูรณ์ (100%)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Tasks Grid Container -->
+      <div id="tasks-grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Dynamic Task Cards Rendered Here -->
+      </div>
+
+      <!-- Empty State for Tasks -->
+      <div id="tasks-empty-state" class="hidden bg-white p-12 text-center rounded-2xl border border-dashed border-slate-300">
+        <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+          <i class="fa-solid fa-folder-open"></i>
+        </div>
+        <h3 class="text-sm font-bold text-slate-700">ไม่พบรายการภารกิจ</h3>
+        <p class="text-xs text-slate-500 mt-1">กดปุ่ม "สร้างภารกิจใหม่" เพื่อเพิ่มงานที่ต้องการติดตามลงในระบบ</p>
+        <button onclick="openNewTaskModal()" class="mt-4 bg-sky-600 hover:bg-sky-700 text-white text-xs px-4 py-2 rounded-lg font-medium transition inline-flex items-center gap-1.5">
+          <i class="fa-solid fa-plus"></i> สร้างภารกิจแรก
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 2: TRACKER & DASHBOARD (ติดตามการส่งงาน & Dashboard)          -->
+    <!-- ================================================================= -->
+    <section id="tab-tracker" class="tab-content space-y-6 hidden">
+      
+      <!-- Task Selection Selector Toolbar -->
+      <div class="bg-gradient-to-r from-sky-900 to-blue-950 p-5 rounded-2xl text-white shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div class="space-y-1.5 flex-grow">
+          <div class="flex items-center gap-2">
+            <span class="bg-sky-500/30 border border-sky-400/40 text-sky-200 text-[10px] font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wider">กำลังติดตามภารกิจ</span>
+            <span id="tracker-task-status-badge" class="bg-emerald-500/30 text-emerald-200 border border-emerald-400/30 text-[10px] font-semibold px-2 py-0.5 rounded-full">เปิดรับการส่งงาน</span>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <select id="tracker-task-selector" onchange="onSelectedTaskChange()" class="bg-white/10 hover:bg-white/20 text-white font-bold text-base md:text-lg rounded-xl px-3 py-1.5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-sky-400 cursor-pointer w-full md:w-auto">
+              <!-- Task Options Dynamic -->
+            </select>
+          </div>
+          <p id="tracker-task-desc" class="text-xs text-sky-200/80 font-light max-w-3xl">คำอธิบายภารกิจ...</p>
+        </div>
+
+        <div class="flex items-center gap-3 bg-white/10 backdrop-blur-md p-3.5 rounded-xl border border-white/15 w-full md:w-auto justify-between md:justify-start">
+          <div class="p-2.5 bg-sky-500 text-white rounded-lg shadow-sm">
+            <i class="fa-regular fa-calendar-check text-xl"></i>
+          </div>
+          <div>
+            <p class="text-[10px] uppercase font-bold text-sky-200 tracking-wider">วันกำหนดส่ง (Due Date)</p>
+            <p id="tracker-task-duedate" class="text-sm font-extrabold text-white">30 พฤศจิกายน 2569</p>
+          </div>
+          <button onclick="openEditCurrentTaskModal()" class="text-sky-200 hover:text-white ml-2 text-xs p-1" title="แก้ไขภารกิจนี้">
+            <i class="fa-solid fa-pen-to-square text-base"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- 4D Analytics Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- Card 1: Total Departments -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">หน่วยงานทั้งหมด</p>
+              <h3 id="stat-total-depts" class="text-2xl font-extrabold text-slate-800 mt-1">11</h3>
+            </div>
+            <div class="p-2.5 bg-sky-50 text-sky-600 rounded-xl">
+              <i class="fa-solid fa-clinic-medical text-lg"></i>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-3 flex items-center gap-1">
+            <i class="fa-solid fa-circle-info text-[10px]"></i> คลินิกในสังกัดหน่วยผู้ป่วยนอก 2
+          </p>
+        </div>
+
+        <!-- Card 2: Submitted Count -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">ส่งงานแล้ว</p>
+              <div class="flex items-baseline gap-1.5 mt-1">
+                <h3 id="stat-submitted-count" class="text-2xl font-extrabold text-blue-600">0</h3>
+                <span id="stat-submitted-pct" class="text-xs font-semibold text-slate-500">(0%)</span>
+              </div>
+            </div>
+            <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+              <i class="fa-solid fa-paper-plane text-lg"></i>
+            </div>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-1.5 mt-3 overflow-hidden">
+            <div id="stat-submitted-bar" class="bg-blue-600 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Card 3: On-Time Count -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">ส่งตรงเวลา (On-Time)</p>
+              <div class="flex items-baseline gap-1.5 mt-1">
+                <h3 id="stat-ontime-count" class="text-2xl font-extrabold text-emerald-600">0</h3>
+                <span id="stat-ontime-pct" class="text-xs font-semibold text-emerald-600">(0%)</span>
+              </div>
+            </div>
+            <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+              <i class="fa-solid fa-clock-check text-lg"></i>
+            </div>
+          </div>
+          <p class="text-[11px] text-emerald-700 font-medium mt-3 flex items-center justify-between">
+            <span>อัตราความตรงต่อเวลา:</span>
+            <span id="stat-ontime-rate" class="font-bold">0%</span>
+          </p>
+        </div>
+
+        <!-- Card 4: Late & Overdue Count -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">ส่งช้า / ค้างส่ง</p>
+              <div class="flex items-baseline gap-2 mt-1">
+                <h3 id="stat-late-count" class="text-2xl font-extrabold text-amber-500" title="ส่งหลังกำหนด">0</h3>
+                <span class="text-slate-300">/</span>
+                <h3 id="stat-overdue-count" class="text-2xl font-extrabold text-rose-600" title="ค้างส่งเกินกำหนด">0</h3>
+              </div>
+            </div>
+            <div class="p-2.5 bg-rose-50 text-rose-600 rounded-xl">
+              <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-3 flex items-center justify-between">
+            <span><span id="stat-late-text" class="text-amber-600 font-semibold">0 ส่งช้า</span> &bull; <span id="stat-overdue-text" class="text-rose-600 font-semibold">0 เลยกำหนด</span></span>
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Graphical Charts Section (Chart.js) -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        
+        <!-- Doughnut Chart -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col">
+          <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-chart-pie text-sky-600"></i> สัดส่วนสถานะการส่งงาน
+          </h3>
+          <div class="flex-grow flex items-center justify-center relative min-h-[220px]">
+            <canvas id="statusDoughnutChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Bar Chart -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col lg:col-span-2">
+          <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-chart-column text-sky-600"></i> เปรียบเทียบจำแนกสถานะตามผลการส่ง
+          </h3>
+          <div class="flex-grow flex items-center justify-center relative min-h-[220px]">
+            <canvas id="statusBarChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Submissions Tracking Table -->
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        
+        <!-- Table Toolbar -->
+        <div class="p-4 border-b border-slate-200/80 bg-slate-50/70 flex flex-col sm:flex-row justify-between items-center gap-3">
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <h3 class="font-bold text-slate-800 text-sm">สถานะการส่งงานรายหน่วยงาน</h3>
+            <span id="table-dept-count-badge" class="bg-sky-100 text-sky-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">11 หน่วยงาน</span>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+            <div class="relative flex-grow sm:flex-grow-0">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+              <input type="text" id="dept-search-input" oninput="renderTrackerTable()" placeholder="ค้นหาหน่วยงาน..." class="w-full sm:w-44 pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500">
+            </div>
+
+            <select id="dept-status-filter" onchange="renderTrackerTable()" class="text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium text-slate-700">
+              <option value="ALL">สถานะทั้งหมด</option>
+              <option value="ONTIME">🟢 ส่งตรงเวลา</option>
+              <option value="LATE">🟡 ส่งหลังกำหนด</option>
+              <option value="PENDING">⚪ รอการส่งงาน</option>
+              <option value="OVERDUE">🔴 ค้างส่ง/เลยกำหนด</option>
+            </select>
+
+            <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition shadow-sm flex items-center gap-1.5 active:scale-95">
+              <i class="fa-solid fa-file-excel"></i>
+              <span>Export CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Table View -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600 border-collapse">
+            <thead class="bg-slate-100/80 text-slate-700 uppercase tracking-wider font-bold border-b border-slate-200">
+              <tr>
+                <th class="p-3.5 pl-5">ชื่อหน่วยงาน / คลินิก</th>
+                <th class="p-3.5">วันกำหนดส่ง</th>
+                <th class="p-3.5">วันที่ส่งจริง</th>
+                <th class="p-3.5">สถานะการส่ง</th>
+                <th class="p-3.5">ผู้ส่งงาน</th>
+                <th class="p-3.5">ไฟล์แนบ</th>
+                <th class="p-3.5 text-center pr-5">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="tracker-table-body" class="divide-y divide-slate-200/70">
+              <!-- Dynamic Rows -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 3: DEPARTMENT MANAGEMENT (จัดการหน่วยงาน)                   -->
+    <!-- ================================================================= -->
+    <section id="tab-departments" class="tab-content space-y-6 hidden">
+      
+      <!-- Department Header -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-building-user text-sky-600"></i> จัดการรายชื่อคลินิกในหน่วยผู้ป่วยนอก 2
+          </h2>
+          <p class="text-xs text-slate-500 mt-1">เพิ่ม แก้ไข หรือลบรายชื่อคลินิกที่รับผิดชอบการส่งงานในระบบได้ตลอดเวลา</p>
+        </div>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <input type="text" id="add-dept-input" placeholder="พิมพ์ชื่อหน่วยงานใหม่..." class="text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none flex-grow sm:w-64">
+          <button onclick="addNewDepartment()" class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2.5 rounded-lg text-xs font-medium transition shadow-sm flex items-center gap-1.5 shrink-0 active:scale-95">
+            <i class="fa-solid fa-plus"></i> เพิ่มหน่วยงาน
+          </button>
+        </div>
+      </div>
+
+      <!-- Department Cards / List -->
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-200/80 bg-slate-50/70 flex justify-between items-center">
+          <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">รายชื่อคลินิกในระบบ</span>
+          <span id="dept-list-count" class="bg-slate-200 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-semibold">11 คลินิก</span>
+        </div>
+
+        <ul id="dept-management-ul" class="divide-y divide-slate-100 text-xs text-slate-700">
+          <!-- Dynamic Dept List Items -->
+        </ul>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 mt-auto">
+    <p>ระบบติดตามการส่งงาน หน่วยผู้ป่วยนอก 2 งานการพยาบาลผู้ป่วยนอก &bull; บันทึกข้อมูลอัตโนมัติใน LocalStorage</p>
+  </footer>
+
+
+  <!-- ================================================================= -->
+  <!-- MODAL DIALOGS                                                     -->
+  <!-- ================================================================= -->
+
+  <!-- Modal 1: Submit Work Modal (บันทึกส่งงาน) -->
+  <div id="submit-work-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-slate-100 animate-in fade-in zoom-in duration-150">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+          <i class="fa-solid fa-paper-plane text-emerald-600"></i> บันทึกข้อมูลการส่งงาน
+        </h3>
+        <button onclick="closeSubmitWorkModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form id="submit-work-form" onsubmit="handleWorkFormSubmit(event)" class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">หน่วยงาน / คลินิก <span class="text-rose-500">*</span></label>
+          <select id="modal-submit-dept" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none font-medium">
+            <!-- Options Dynamic -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">วันที่ส่งจริง <span class="text-rose-500">*</span></label>
+          <input type="date" id="modal-submit-date" required class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none font-medium">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">ชื่อผู้ส่งงาน / ผู้ประสานงาน</label>
+          <input type="text" id="modal-submit-submitter" placeholder="ระบุชื่อ-นามสกุล..." class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">ลิงก์แนบเอกสาร/ไฟล์งาน (Google Drive / OneDrive ฯลฯ)</label>
+          <input type="url" id="modal-submit-link" placeholder="https://drive.google.com/..." class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">หมายเหตุเพิ่มเติม</label>
+          <textarea id="modal-submit-note" rows="2" placeholder="ระบุหมายเหตุการส่งงาน (ถ้ามี)..." class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeSubmitWorkModal()" class="px-4 py-2 font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition">ยกเลิก</button>
+          <button type="submit" class="px-4 py-2 font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm transition">บันทึกส่งงาน</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Task Form Modal (สร้าง/แก้ไขภารกิจ) -->
+  <div id="task-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-slate-100">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 id="task-modal-title" class="font-bold text-slate-800 text-base flex items-center gap-2">
+          <i class="fa-solid fa-plus-circle text-sky-600"></i> สร้างภารกิจใหม่
+        </h3>
+        <button onclick="closeTaskModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form id="task-modal-form" onsubmit="handleTaskFormSubmit(event)" class="space-y-3.5 text-xs">
+        <input type="hidden" id="task-modal-id">
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">ชื่อหัวข้องาน / ภารกิจ <span class="text-rose-500">*</span></label>
+          <input type="text" id="task-modal-name" required placeholder="เช่น จัดทำ Service Profile ประจำปี..." class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">วันกำหนดส่ง (Due Date) <span class="text-rose-500">*</span></label>
+          <input type="date" id="task-modal-duedate" required class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none font-medium">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">คำอธิบายรายละเอียดภารกิจ</label>
+          <textarea id="task-modal-desc" rows="3" placeholder="ระบุรายละเอียดแนวทางการส่งงาน..." class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeTaskModal()" class="px-4 py-2 font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition">ยกเลิก</button>
+          <button type="submit" class="px-4 py-2 font-semibold bg-sky-600 hover:bg-sky-700 text-white rounded-lg shadow-sm transition">บันทึกภารกิจ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ================================================================= -->
+  <!-- JAVASCRIPT LOGIC                                                  -->
+  <!-- ================================================================= -->
+  <script>
+    // 1. DEFAULT INITIAL DATA (11 CLINICS OF OPD UNIT 2)
+    const INITIAL_DEPTS = [
+      "คลินิกส่องกล้องอายุรกรรม",
+      "คลินิกห้องทำหัตถการผู้ป่วยนอก",
+      "คลินิกรังสีวินิจฉัย",
+      "คลินิกรังสีรักษา",
+      "คลินิกรังสีร่วมรักษา",
+      "คลินิกออร์โธปิดิกส์",
+      "คลินิกศัลยกรรม",
+      "คลินิกสูติ-นรีเวชกรรม",
+      "คลินิกกุมารเวชกรรม",
+      "คลินิกโสต ศอ นาสิก",
+      "คลินิกดูแลแผลและทวารเทียม"
+    ];
+
+    const INITIAL_TASKS = [
+      {
+        id: "TASK-001",
+        title: "จัดทำ Service Profile ประจำปี",
+        dueDate: "2026-11-30",
+        description: "กรุณาจัดส่งข้อมูล Service Profile ประจำปีของคลินิก/หน่วยงานในสังกัดหน่วยผู้ป่วยนอก 2 ให้ครบถ้วน"
+      },
+      {
+        id: "TASK-002",
+        title: "รายงานความเสี่ยงและความปลอดภัยประจำเดือน",
+        dueDate: "2026-10-15",
+        description: "จัดส่งรายงานสรุปอุบัติการณ์และความเสี่ยงประจำเดือนเพื่อสรุปนำเสนอ คปส."
+      }
+    ];
+
+    // 2. STATE APP VARIABLES
+    let tasks = [];
+    let departments = [];
+    let submissions = {}; // Format: { "TASK-ID": { "DeptName": { submitDate, submitter, link, note } } }
+    let activeTaskId = "";
+    let activeTab = "all-tasks";
+
+    let statusDoughnutChartInstance = null;
+    let statusBarChartInstance = null;
+
+    // 3. INITIALIZATION ON LOAD
+    window.addEventListener('DOMContentLoaded', () => {
+      loadStateFromLocalStorage();
+      initChartJS();
+      renderAllTasksTab();
+      updateTrackerTaskSelector();
+      renderDeptManagementTab();
+    });
+
+    // LocalStorage Management
+    function saveStateToLocalStorage() {
+      localStorage.setItem('tt_opd2_tasks', JSON.stringify(tasks));
+      localStorage.setItem('tt_opd2_depts', JSON.stringify(departments));
+      localStorage.setItem('tt_opd2_subs', JSON.stringify(submissions));
+      localStorage.setItem('tt_opd2_active_task', activeTaskId);
+    }
+
+    function loadStateFromLocalStorage() {
+      const savedTasks = localStorage.getItem('tt_opd2_tasks');
+      const savedDepts = localStorage.getItem('tt_opd2_depts');
+      const savedSubs = localStorage.getItem('tt_opd2_subs');
+      const savedActiveTask = localStorage.getItem('tt_opd2_active_task');
+
+      tasks = savedTasks ? JSON.parse(savedTasks) : [...INITIAL_TASKS];
+      departments = savedDepts ? JSON.parse(savedDepts) : [...INITIAL_DEPTS];
+      submissions = savedSubs ? JSON.parse(savedSubs) : {};
+
+      if (tasks.length > 0) {
+        activeTaskId = (savedActiveTask && tasks.some(t => t.id === savedActiveTask)) 
+          ? savedActiveTask 
+          : tasks[0].id;
+      }
+    }
+
+    function resetDataPrompt() {
+      if (confirm('คุณต้องการล้างข้อมูลทั้งหมด และคืนค่าตั้งต้นใช่หรือไม่?')) {
+        localStorage.clear();
+        tasks = [...INITIAL_TASKS];
+        departments = [...INITIAL_DEPTS];
+        submissions = {};
+        activeTaskId = tasks[0].id;
+        saveStateToLocalStorage();
+        
+        renderAllTasksTab();
+        updateTrackerTaskSelector();
+        renderDeptManagementTab();
+        alert('รีเซ็ตระบบเป็นค่าเริ่มต้นเรียบร้อยแล้ว');
+      }
+    }
+
+    // Date Utilities
+    function formatDateTh(dateStr) {
+      if (!dateStr) return "-";
+      const parts = dateStr.split("-");
+      if (parts.length !== 3) return dateStr;
+      const year = parseInt(parts[0]);
+      const monthIndex = parseInt(parts[1]) - 1;
+      const day = parseInt(parts[2]);
+
+      const monthsTh = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+      const thYear = year < 2500 ? year + 543 : year;
+
+      return `${day} ${monthsTh[monthIndex]} ${thYear}`;
+    }
+
+    function getTodayYMD() {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    // Calculates Day difference (Date1 - Date2)
+    function getDaysDiff(targetDateStr) {
+      const target = new Date(targetDateStr);
+      const today = new Date(getTodayYMD());
+      const diffTime = target - today;
+      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    // 4. TAB NAVIGATION CONTROLLER
+    function switchTab(tabName) {
+      activeTab = tabName;
+      
+      // Toggle Tab Buttons Styling
+      const tabsList = ['all-tasks', 'tracker', 'departments'];
+      tabsList.forEach(t => {
+        const btn = document.getElementById(`tab-btn-${t}`);
+        const mobileBtn = document.getElementById(`mobile-tab-btn-${t}`);
+        const content = document.getElementById(`tab-${t}`);
+
+        if (t === tabName) {
+          content.classList.remove('hidden');
+          if (btn) {
+            btn.className = "tab-btn px-4 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2 bg-white/15 text-white shadow-sm border border-white/10";
+          }
+          if (mobileBtn) {
+            mobileBtn.className = "mobile-tab-btn flex-1 py-1.5 text-center text-white font-medium bg-white/10 rounded-md";
+          }
+        } else {
+          content.classList.add('hidden');
+          if (btn) {
+            btn.className = "tab-btn px-4 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2 text-sky-100 hover:bg-white/10 hover:text-white";
+          }
+          if (mobileBtn) {
+            mobileBtn.className = "mobile-tab-btn flex-1 py-1.5 text-center text-sky-200";
+          }
+        }
+      });
+
+      if (tabName === 'all-tasks') {
+        renderAllTasksTab();
+      } else if (tabName === 'tracker') {
+        updateTrackerTaskSelector();
+      } else if (tabName === 'departments') {
+        renderDeptManagementTab();
+      }
+    }
+
+    // 5. TAB 1: ALL TASKS TAB LOGIC
+    function renderAllTasksTab() {
+      const container = document.getElementById('tasks-grid-container');
+      const emptyState = document.getElementById('tasks-empty-state');
+      const searchVal = document.getElementById('task-search-input').value.toLowerCase().trim();
+      const filterVal = document.getElementById('task-filter-status').value;
+
+      container.innerHTML = '';
+      let visibleCount = 0;
+
+      tasks.forEach(task => {
+        // Calculate Task Progress & Status
+        const total = departments.length;
+        let submitted = 0;
+        const taskSubs = submissions[task.id] || {};
+
+        departments.forEach(dept => {
+          if (taskSubs[dept] && taskSubs[dept].submitDate) submitted++;
+        });
+
+        const progressPct = total > 0 ? Math.round((submitted / total) * 100) : 0;
+        const daysLeft = getDaysDiff(task.dueDate);
+
+        // Status Determination
+        let statusKey = "ACTIVE"; // ACTIVE, SOON, OVERDUE, COMPLETED
+        let badgeHTML = "";
+
+        if (progressPct === 100) {
+          statusKey = "COMPLETED";
+          badgeHTML = `<span class="bg-blue-100 text-blue-800 border border-blue-200 text-[11px] font-semibold px-2.5 py-0.5 rounded-full"><i class="fa-solid fa-circle-check"></i> เสร็จสมบูรณ์</span>`;
+        } else if (daysLeft < 0) {
+          statusKey = "OVERDUE";
+          badgeHTML = `<span class="bg-rose-100 text-rose-800 border border-rose-200 text-[11px] font-semibold px-2.5 py-0.5 rounded-full"><i class="fa-solid fa-triangle-exclamation"></i> เลยกำหนดส่ง</span>`;
+        } else if (daysLeft <= 7) {
+          statusKey = "SOON";
+          badgeHTML = `<span class="bg-amber-100 text-amber-800 border border-amber-200 text-[11px] font-semibold px-2.5 py-0.5 rounded-full"><i class="fa-solid fa-clock"></i> ใกล้ถึงกำหนด (เหลือ ${daysLeft} วัน)</span>`;
+        } else {
+          statusKey = "ACTIVE";
+          badgeHTML = `<span class="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-semibold px-2.5 py-0.5 rounded-full"><i class="fa-solid fa-spinner"></i> กำลังดำเนินการ</span>`;
+        }
+
+        // Apply Search & Filter
+        if (searchVal && !task.title.toLowerCase().includes(searchVal) && !(task.description && task.description.toLowerCase().includes(searchVal))) {
+          return;
+        }
+        if (filterVal !== 'ALL' && filterVal !== statusKey) {
+          return;
+        }
+
+        visibleCount++;
+
+        // Render Card HTML
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition flex flex-col justify-between overflow-hidden p-5 space-y-4";
+        card.innerHTML = `
+          <div class="space-y-2">
+            <div class="flex justify-between items-start gap-2">
+              <div>${badgeHTML}</div>
+              <div class="flex items-center gap-1">
+                <button onclick="editTaskModal('${task.id}')" class="text-slate-400 hover:text-sky-600 p-1 text-xs" title="แก้ไขภารกิจ">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <button onclick="deleteTaskPrompt('${task.id}')" class="text-slate-400 hover:text-rose-600 p-1 text-xs" title="ลบภารกิจ">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </div>
+
+            <h3 class="font-bold text-slate-800 text-base leading-snug hover:text-sky-700 cursor-pointer" onclick="goToTrackerForTask('${task.id}')">${task.title}</h3>
+            <p class="text-xs text-slate-500 line-clamp-2">${task.description || 'ไม่มีคำอธิบายภารกิจ'}</p>
+          </div>
+
+          <div class="space-y-3 pt-2 border-t border-slate-100">
+            <!-- Due Date Info -->
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-medium">วันกำหนดส่ง:</span>
+              <span class="font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded"><i class="fa-regular fa-calendar text-sky-600 mr-1"></i> ${formatDateTh(task.dueDate)}</span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-[11px] font-semibold">
+                <span class="text-slate-500">ความคืบหน้าการส่งงาน</span>
+                <span class="text-sky-700">${submitted} / ${total} หน่วยงาน (${progressPct}%)</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div class="bg-gradient-to-r from-sky-500 to-blue-600 h-2 rounded-full transition-all duration-500" style="width: ${progressPct}%"></div>
+              </div>
+            </div>
+
+            <!-- Action Link Button -->
+            <button onclick="goToTrackerForTask('${task.id}')" class="w-full mt-2 bg-slate-50 hover:bg-sky-50 text-sky-700 font-semibold text-xs py-2 rounded-xl border border-slate-200/80 hover:border-sky-300 transition flex items-center justify-center gap-1.5 group">
+              <span>ติดตามงานนี้</span>
+              <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      if (visibleCount === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+      }
+    }
+
+    function goToTrackerForTask(taskId) {
+      activeTaskId = taskId;
+      saveStateToLocalStorage();
+      switchTab('tracker');
+    }
+
+    // 6. TAB 2: TRACKER & DASHBOARD LOGIC
+    function updateTrackerTaskSelector() {
+      const select = document.getElementById('tracker-task-selector');
+      select.innerHTML = '';
+
+      if (tasks.length === 0) {
+        select.innerHTML = '<option value="">-- ไม่พบภารกิจ --</option>';
+        return;
+      }
+
+      tasks.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        opt.innerText = t.title;
+        if (t.id === activeTaskId) opt.selected = true;
+        select.appendChild(opt);
+      });
+
+      if (!activeTaskId && tasks.length > 0) activeTaskId = tasks[0].id;
+
+      onSelectedTaskChange();
+    }
+
+    function onSelectedTaskChange() {
+      const select = document.getElementById('tracker-task-selector');
+      activeTaskId = select.value;
+      saveStateToLocalStorage();
+
+      const currentTask = tasks.find(t => t.id === activeTaskId);
+      if (!currentTask) return;
+
+      // Update Header Text
+      document.getElementById('tracker-task-desc').innerText = currentTask.description || 'ไม่มีคำอธิบายภารกิจ';
+      document.getElementById('tracker-task-duedate').innerText = formatDateTh(currentTask.dueDate);
+
+      const daysLeft = getDaysDiff(currentTask.dueDate);
+      const badge = document.getElementById('tracker-task-status-badge');
+      if (daysLeft < 0) {
+        badge.className = "bg-rose-500/30 text-rose-200 border border-rose-400/30 text-[10px] font-semibold px-2 py-0.5 rounded-full";
+        badge.innerText = "พ้นกำหนดส่งแล้ว";
+      } else {
+        badge.className = "bg-emerald-500/30 text-emerald-200 border border-emerald-400/30 text-[10px] font-semibold px-2 py-0.5 rounded-full";
+        badge.innerText = "เปิดรับการส่งงาน";
+      }
+
+      calculateAndRenderDashboard();
+      renderTrackerTable();
+    }
+
+    // Timeliness Status Logic Engine
+    function calculateDeptSubmissionStatus(deptName, taskId) {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return { key: 'PENDING', label: 'รอการส่งงาน', color: 'slate' };
+
+      const taskSubs = submissions[taskId] || {};
+      const sub = taskSubs[deptName];
+      const dueDate = task.dueDate;
+      const today = getTodayYMD();
+
+      if (sub && sub.submitDate) {
+        if (sub.submitDate <= dueDate) {
+          return { key: 'ONTIME', label: 'ส่งตรงเวลา', color: 'emerald' };
+        } else {
+          return { key: 'LATE', label: 'ส่งหลังกำหนด', color: 'amber' };
+        }
+      } else {
+        if (today > dueDate) {
+          return { key: 'OVERDUE', label: 'ค้างส่ง (เกินกำหนด)', color: 'rose' };
+        } else {
+          return { key: 'PENDING', label: 'รอการส่งงาน', color: 'slate' };
+        }
+      }
+    }
+
+    function calculateAndRenderDashboard() {
+      const totalDepts = departments.length;
+      let submittedCount = 0;
+      let ontimeCount = 0;
+      let lateCount = 0;
+      let overdueCount = 0;
+      let pendingCount = 0;
+
+      departments.forEach(dept => {
+        const st = calculateDeptSubmissionStatus(dept, activeTaskId);
+        if (st.key === 'ONTIME') { submittedCount++; ontimeCount++; }
+        else if (st.key === 'LATE') { submittedCount++; lateCount++; }
+        else if (st.key === 'OVERDUE') { overdueCount++; }
+        else if (st.key === 'PENDING') { pendingCount++; }
+      });
+
+      const submittedPct = totalDepts > 0 ? Math.round((submittedCount / totalDepts) * 100) : 0;
+      const ontimeRate = submittedCount > 0 ? Math.round((ontimeCount / submittedCount) * 100) : 0;
+      const ontimeTotalPct = totalDepts > 0 ? Math.round((ontimeCount / totalDepts) * 100) : 0;
+
+      document.getElementById('stat-total-depts').innerText = totalDepts;
+      document.getElementById('stat-submitted-count').innerText = `${submittedCount} / ${totalDepts}`;
+      document.getElementById('stat-submitted-pct').innerText = `(${submittedPct}%)`;
+      document.getElementById('stat-submitted-bar').style.width = `${submittedPct}%`;
+
+      document.getElementById('stat-ontime-count').innerText = ontimeCount;
+      document.getElementById('stat-ontime-pct').innerText = `(${ontimeTotalPct}%)`;
+      document.getElementById('stat-ontime-rate').innerText = `${ontimeRate}%`;
+
+      document.getElementById('stat-late-count').innerText = lateCount;
+      document.getElementById('stat-overdue-count').innerText = overdueCount;
+      document.getElementById('stat-late-text').innerText = `${lateCount} ส่งช้า`;
+      document.getElementById('stat-overdue-text').innerText = `${overdueCount} เลยกำหนด`;
+
+      // Update Chart Instances
+      updateCharts(ontimeCount, lateCount, overdueCount, pendingCount);
+    }
+
+    // Chart.js Configuration & Update
+    function initChartJS() {
+      // Doughnut Chart
+      const ctxDoughnut = document.getElementById('statusDoughnutChart').getContext('2d');
+      statusDoughnutChartInstance = new Chart(ctxDoughnut, {
+        type: 'doughnut',
+        data: {
+          labels: ['ส่งตรงเวลา', 'ส่งหลังกำหนด', 'ค้างส่ง (เกินกำหนด)', 'รอการส่งงาน'],
+          datasets: [{
+            data: [0, 0, 0, 0],
+            backgroundColor: ['#10b981', '#f59e0b', '#f43f5e', '#cbd5e1'],
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { font: { family: 'Prompt', size: 11 } } }
+          }
+        }
+      });
+
+      // Bar Chart
+      const ctxBar = document.getElementById('statusBarChart').getContext('2d');
+      statusBarChartInstance = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+          labels: ['ผลการส่งงาน'],
+          datasets: [
+            { label: 'ส่งตรงเวลา (On-Time)', data: [0], backgroundColor: '#10b981', borderRadius: 6 },
+            { label: 'ส่งหลังกำหนด (Late)', data: [0], backgroundColor: '#f59e0b', borderRadius: 6 },
+            { label: 'ค้างส่ง (Overdue)', data: [0], backgroundColor: '#f43f5e', borderRadius: 6 },
+            { label: 'รอการส่งงาน (Pending)', data: [0], backgroundColor: '#cbd5e1', borderRadius: 6 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1, font: { family: 'Prompt' } } },
+            x: { ticks: { font: { family: 'Prompt' } } }
+          },
+          plugins: {
+            legend: { position: 'bottom', labels: { font: { family: 'Prompt', size: 11 } } }
+          }
+        }
+      });
+    }
+
+    function updateCharts(ontime, late, overdue, pending) {
+      if (!statusDoughnutChartInstance || !statusBarChartInstance) return;
+
+      statusDoughnutChartInstance.data.datasets[0].data = [ontime, late, overdue, pending];
+      statusDoughnutChartInstance.update();
+
+      statusBarChartInstance.data.datasets[0].data = [ontime];
+      statusBarChartInstance.data.datasets[1].data = [late];
+      statusBarChartInstance.data.datasets[2].data = [overdue];
+      statusBarChartInstance.data.datasets[3].data = [pending];
+      statusBarChartInstance.update();
+    }
+
+    // Render Tracker Table Rows
+    function renderTrackerTable() {
+      const tbody = document.getElementById('tracker-table-body');
+      const searchVal = document.getElementById('dept-search-input').value.toLowerCase().trim();
+      const filterVal = document.getElementById('dept-status-filter').value;
+      const currentTask = tasks.find(t => t.id === activeTaskId);
+
+      tbody.innerHTML = '';
+      if (!currentTask) return;
+
+      const taskSubs = submissions[activeTaskId] || {};
+      let displayedCount = 0;
+
+      departments.forEach(dept => {
+        if (searchVal && !dept.toLowerCase().includes(searchVal)) return;
+
+        const st = calculateDeptSubmissionStatus(dept, activeTaskId);
+        if (filterVal !== 'ALL' && filterVal !== st.key) return;
+
+        displayedCount++;
+        const sub = taskSubs[dept];
+
+        // Badge HTML
+        let badgeHTML = '';
+        if (st.key === 'ONTIME') {
+          badgeHTML = `<span class="bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-full font-semibold inline-flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> ส่งตรงเวลา</span>`;
+        } else if (st.key === 'LATE') {
+          badgeHTML = `<span class="bg-amber-100 text-amber-800 border border-amber-200 px-2.5 py-0.5 rounded-full font-semibold inline-flex items-center gap-1"><i class="fa-solid fa-clock"></i> ส่งหลังกำหนด</span>`;
+        } else if (st.key === 'OVERDUE') {
+          badgeHTML = `<span class="bg-rose-100 text-rose-800 border border-rose-200 px-2.5 py-0.5 rounded-full font-semibold inline-flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation"></i> เลยกำหนดส่ง</span>`;
+        } else {
+          badgeHTML = `<span class="bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-0.5 rounded-full font-semibold inline-flex items-center gap-1"><i class="fa-regular fa-hourglass"></i> รอการส่งงาน</span>`;
+        }
+
+        const linkHTML = sub && sub.link 
+          ? `<a href="${sub.link}" target="_blank" class="text-sky-600 hover:text-sky-800 font-medium underline inline-flex items-center gap-1"><i class="fa-solid fa-link text-[10px]"></i> เปิดเอกสาร</a>`
+          : `<span class="text-slate-400">-</span>`;
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50/80 transition";
+        tr.innerHTML = `
+          <td class="p-3.5 pl-5 font-bold text-slate-800">${dept}</td>
+          <td class="p-3.5 text-slate-500 font-medium">${formatDateTh(currentTask.dueDate)}</td>
+          <td class="p-3.5 font-medium">${sub && sub.submitDate ? formatDateTh(sub.submitDate) : '-'}</td>
+          <td class="p-3.5">${badgeHTML}</td>
+          <td class="p-3.5">${sub && sub.submitter ? sub.submitter : '-'}</td>
+          <td class="p-3.5">${linkHTML}</td>
+          <td class="p-3.5 text-center pr-5">
+            <button onclick="openSubmitWorkModal('${dept}')" class="bg-sky-50 hover:bg-sky-100 text-sky-700 font-semibold px-2.5 py-1 rounded-lg border border-sky-200 transition text-[11px] inline-flex items-center gap-1">
+              <i class="fa-solid fa-pen-to-square"></i> บันทึกส่งงาน
+            </button>
+            ${sub ? `
+              <button onclick="deleteSubmissionPrompt('${dept}')" class="text-rose-500 hover:text-rose-700 p-1 ml-1 rounded hover:bg-rose-50 transition" title="ลบการส่งงาน">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            ` : ''}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('table-dept-count-badge').innerText = `${displayedCount} หน่วยงาน`;
+    }
+
+    // 7. SUBMIT WORK MODAL HANDLERS
+    function openSubmitWorkModal(selectedDept = "") {
+      const select = document.getElementById('modal-submit-dept');
+      select.innerHTML = '<option value="">-- เลือกหน่วยงาน --</option>';
+      departments.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.innerText = d;
+        select.appendChild(opt);
+      });
+
+      if (selectedDept) {
+        select.value = selectedDept;
+        const taskSubs = submissions[activeTaskId] || {};
+        const sub = taskSubs[selectedDept];
+        if (sub) {
+          document.getElementById('modal-submit-date').value = sub.submitDate || getTodayYMD();
+          document.getElementById('modal-submit-submitter').value = sub.submitter || '';
+          document.getElementById('modal-submit-link').value = sub.link || '';
+          document.getElementById('modal-submit-note').value = sub.note || '';
+        } else {
+          document.getElementById('modal-submit-date').value = getTodayYMD();
+          document.getElementById('modal-submit-submitter').value = '';
+          document.getElementById('modal-submit-link').value = '';
+          document.getElementById('modal-submit-note').value = '';
+        }
+      } else {
+        document.getElementById('modal-submit-date').value = getTodayYMD();
+        document.getElementById('modal-submit-submitter').value = '';
+        document.getElementById('modal-submit-link').value = '';
+        document.getElementById('modal-submit-note').value = '';
+      }
+
+      document.getElementById('submit-work-modal').classList.remove('hidden');
+    }
+
+    function closeSubmitWorkModal() {
+      document.getElementById('submit-work-modal').classList.add('hidden');
+    }
+
+    function handleWorkFormSubmit(e) {
+      e.preventDefault();
+      const dept = document.getElementById('modal-submit-dept').value;
+      const submitDate = document.getElementById('modal-submit-date').value;
+      const submitter = document.getElementById('modal-submit-submitter').value.trim();
+      const link = document.getElementById('modal-submit-link').value.trim();
+      const note = document.getElementById('modal-submit-note').value.trim();
+
+      if (!dept || !submitDate || !activeTaskId) return;
+
+      if (!submissions[activeTaskId]) submissions[activeTaskId] = {};
+
+      submissions[activeTaskId][dept] = { submitDate, submitter, link, note };
+      saveStateToLocalStorage();
+      
+      calculateAndRenderDashboard();
+      renderTrackerTable();
+      closeSubmitWorkModal();
+    }
+
+    function deleteSubmissionPrompt(dept) {
+      if (confirm(`คุณต้องการลบข้อมูลการส่งงานของ "${dept}" ใช่หรือไม่?`)) {
+        if (submissions[activeTaskId] && submissions[activeTaskId][dept]) {
+          delete submissions[activeTaskId][dept];
+          saveStateToLocalStorage();
+          calculateAndRenderDashboard();
+          renderTrackerTable();
+        }
+      }
+    }
+
+    // 8. TASK MANAGEMENT MODAL (CREATE / EDIT / DELETE)
+    function openNewTaskModal() {
+      document.getElementById('task-modal-title').innerHTML = `<i class="fa-solid fa-plus-circle text-sky-600"></i> สร้างภารกิจใหม่`;
+      document.getElementById('task-modal-id').value = "";
+      document.getElementById('task-modal-name').value = "";
+      document.getElementById('task-modal-duedate').value = getTodayYMD();
+      document.getElementById('task-modal-desc').value = "";
+      document.getElementById('task-modal').classList.remove('hidden');
+    }
+
+    function editTaskModal(taskId) {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      document.getElementById('task-modal-title').innerHTML = `<i class="fa-solid fa-pen-to-square text-sky-600"></i> แก้ไขภารกิจ`;
+      document.getElementById('task-modal-id').value = task.id;
+      document.getElementById('task-modal-name').value = task.title;
+      document.getElementById('task-modal-duedate').value = task.dueDate;
+      document.getElementById('task-modal-desc').value = task.description || '';
+      document.getElementById('task-modal').classList.remove('hidden');
+    }
+
+    function openEditCurrentTaskModal() {
+      if (activeTaskId) editTaskModal(activeTaskId);
+    }
+
+    function closeTaskModal() {
+      document.getElementById('task-modal').classList.add('hidden');
+    }
+
+    function handleTaskFormSubmit(e) {
+      e.preventDefault();
+      const taskId = document.getElementById('task-modal-id').value;
+      const title = document.getElementById('task-modal-name').value.trim();
+      const dueDate = document.getElementById('task-modal-duedate').value;
+      const description = document.getElementById('task-modal-desc').value.trim();
+
+      if (!title || !dueDate) return;
+
+      if (taskId) {
+        // Edit Mode
+        const taskIndex = tasks.findIndex(t => t.id === taskId);
+        if (taskIndex !== -1) {
+          tasks[taskIndex].title = title;
+          tasks[taskIndex].dueDate = dueDate;
+          tasks[taskIndex].description = description;
+        }
+      } else {
+        // Create Mode
+        const newId = `TASK-${Date.now().toString().slice(-4)}`;
+        tasks.push({
+          id: newId,
+          title,
+          dueDate,
+          description
+        });
+        activeTaskId = newId;
+      }
+
+      saveStateToLocalStorage();
+      renderAllTasksTab();
+      updateTrackerTaskSelector();
+      closeTaskModal();
+    }
+
+    function deleteTaskPrompt(taskId) {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      if (confirm(`คุณต้องการลบภารกิจ "${task.title}" ใช่หรือไม่? (ข้อมูลการส่งงานของภารกิจนี้จะถูกลบไปด้วย)`)) {
+        tasks = tasks.filter(t => t.id !== taskId);
+        delete submissions[taskId];
+        
+        if (tasks.length > 0) activeTaskId = tasks[0].id;
+        else activeTaskId = "";
+
+        saveStateToLocalStorage();
+        renderAllTasksTab();
+        updateTrackerTaskSelector();
+      }
+    }
+
+    // 9. TAB 3: DEPARTMENT MANAGEMENT LOGIC
+    function renderDeptManagementTab() {
+      const ul = document.getElementById('dept-management-ul');
+      ul.innerHTML = '';
+
+      departments.forEach((dept, index) => {
+        const li = document.createElement('li');
+        li.className = "p-3.5 px-5 flex justify-between items-center hover:bg-slate-50/80 transition";
+        li.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-500 font-semibold text-[11px] flex items-center justify-center">${index + 1}</span>
+            <span class="font-bold text-slate-800">${dept}</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <button onclick="editDeptPrompt(${index})" class="text-sky-600 hover:text-sky-800 text-xs px-2.5 py-1 rounded-md hover:bg-sky-50 font-medium transition">
+              <i class="fa-solid fa-pen"></i> แก้ไข
+            </button>
+            <button onclick="deleteDeptPrompt(${index})" class="text-rose-500 hover:text-rose-700 text-xs px-2.5 py-1 rounded-md hover:bg-rose-50 font-medium transition">
+              <i class="fa-solid fa-trash-can"></i> ลบ
+            </button>
+          </div>
+        `;
+        ul.appendChild(li);
+      });
+
+      document.getElementById('dept-list-count').innerText = `${departments.length} คลินิก`;
+    }
+
+    function addNewDepartment() {
+      const input = document.getElementById('add-dept-input');
+      const name = input.value.trim();
+      if (!name) return;
+
+      if (departments.includes(name)) {
+        alert('ชื่อหน่วยงานนี้มีอยู่ในระบบแล้ว');
+        return;
+      }
+
+      departments.push(name);
+      input.value = '';
+      saveStateToLocalStorage();
+      renderDeptManagementTab();
+      calculateAndRenderDashboard();
+      renderTrackerTable();
+    }
+
+    function editDeptPrompt(index) {
+      const oldName = departments[index];
+      const newName = prompt("แก้ไขชื่อหน่วยงาน:", oldName);
+      if (newName && newName.trim() !== "" && newName !== oldName) {
+        const trimmed = newName.trim();
+        departments[index] = trimmed;
+
+        // Update Submission Object keys
+        Object.keys(submissions).forEach(taskId => {
+          if (submissions[taskId][oldName]) {
+            submissions[taskId][trimmed] = submissions[taskId][oldName];
+            delete submissions[taskId][oldName];
+          }
+        });
+
+        saveStateToLocalStorage();
+        renderDeptManagementTab();
+        calculateAndRenderDashboard();
+        renderTrackerTable();
+      }
+    }
+
+    function deleteDeptPrompt(index) {
+      const deptName = departments[index];
+      if (confirm(`คุณต้องการลบหน่วยงาน "${deptName}" ใช่หรือไม่?`)) {
+        departments.splice(index, 1);
+
+        // Delete from submissions
+        Object.keys(submissions).forEach(taskId => {
+          delete submissions[taskId][deptName];
+        });
+
+        saveStateToLocalStorage();
+        renderDeptManagementTab();
+        calculateAndRenderDashboard();
+        renderTrackerTable();
+      }
+    }
+
+    // 10. EXPORT TO CSV (WITH UTF-8 BOM FOR THAI LANGUAGE SUPPORT IN EXCEL)
+    function exportToCSV() {
+      const currentTask = tasks.find(t => t.id === activeTaskId);
+      if (!currentTask) {
+        alert('กรุณาเลือกภารกิจที่ต้องการ Export');
+        return;
+      }
+
+      // UTF-8 BOM Marker
+      let csvContent = "\uFEFF";
+      csvContent += "ลำดับ,ชื่อหน่วยงาน/คลินิก,ภารกิจ,วันกำหนดส่ง,วันที่ส่งจริง,สถานะการส่ง,ผู้ส่งงาน,ลิงก์เอกสาร,หมายเหตุ\n";
+
+      const taskSubs = submissions[activeTaskId] || {};
+
+      departments.forEach((dept, idx) => {
+        const sub = taskSubs[dept];
+        const st = calculateDeptSubmissionStatus(dept, activeTaskId);
+
+        const dueDateTh = formatDateTh(currentTask.dueDate);
+        const submitDateTh = sub && sub.submitDate ? formatDateTh(sub.submitDate) : "-";
+        const submitter = sub && sub.submitter ? `"${sub.submitter}"` : "-";
+        const link = sub && sub.link ? `"${sub.link}"` : "-";
+        const note = sub && sub.note ? `"${sub.note.replace(/"/g, '""')}"` : "-";
+
+        csvContent += `${idx + 1},"${dept}","${currentTask.title}","${dueDateTh}","${submitDateTh}","${st.label}",${submitter},${link},${note}\n`;
+      });
+
+      // Create Download Link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `รายงานการส่งงาน_${currentTask.title}_${getTodayYMD()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  </script>
+</body>
+</html>
